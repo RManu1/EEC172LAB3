@@ -44,7 +44,7 @@ void writeData(unsigned char c) {
 /* Write a function to send a data byte c to the OLED via
 *  SPI.
 */
-    GPIOPinWrite(GPIOA3_BASE,0x2,0x02);    // Set DC High
+    GPIOPinWrite(GPIOA3_BASE,0x2,0xFF);    // Set DC High
     GPIOPinWrite(GPIOA3_BASE,0x80,0x00);   // Set CS Low
     MAP_SPIDataPut(GSPI_BASE,c);        // Send c to OLED
 
@@ -67,7 +67,7 @@ void Adafruit_Init(void){
 
   for(delay=0; delay<100; delay=delay+1);// delay minimum 100 ns
 
-  GPIOPinWrite(GPIOA2_BASE, 0x40, 0x10);    // RESET = RESET_HIGH
+  GPIOPinWrite(GPIOA2_BASE, 0x40, 0xFF);    // RESET = RESET_HIGH
 
     // Initialization Sequence
   writeCommand(SSD1351_CMD_COMMANDLOCK);  // set command lock

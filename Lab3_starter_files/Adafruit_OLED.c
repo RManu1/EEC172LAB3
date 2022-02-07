@@ -19,7 +19,7 @@
 
 // Common interface includes
 #include "uart_if.h"
-#include "pin_mux_config.h"
+#include "pinmux.h"
 
 #include "Adafruit_SSD1351.h"
 

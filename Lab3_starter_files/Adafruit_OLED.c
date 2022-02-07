@@ -60,7 +60,7 @@ void Adafruit_Init(void){
 *  update the GPIOPinWrite commands below that set RESET
 *  high or low.
 */
-
+//Reset is pin 15 which is 0x40
   volatile unsigned long delay;
 
   GPIOPinWrite(GPIOA2_BASE, 0x40, 0);   // RESET = RESET_LOW

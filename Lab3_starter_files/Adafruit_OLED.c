@@ -31,8 +31,8 @@ void writeCommand(unsigned char c) {
 /* Write a function to send a command byte c to the OLED via
 *  SPI.
 */
-    GPIOPinWrite(GPIOA3_BASE,0x2,0);    // Set DC Low
-    GPIOPinWrite(GPIOA3_BASE,0x80,0);   // Set CS Low
+    GPIOPinWrite(GPIOA3_BASE,0x2,0x00);    // Set DC Low
+    GPIOPinWrite(GPIOA3_BASE,0x80,0x00);   // Set CS Low
     MAP_SPIDataPut(GSPI_BASE,c);        // Send c to OLED
 
 }
@@ -44,8 +44,8 @@ void writeData(unsigned char c) {
 /* Write a function to send a data byte c to the OLED via
 *  SPI.
 */
-    GPIOPinWrite(GPIOA3_BASE,0x2,0);    // Set DC High
-    GPIOPinWrite(GPIOA3_BASE,0x80,0);   // Set CS Low
+    GPIOPinWrite(GPIOA3_BASE,0x2,0x02);    // Set DC High
+    GPIOPinWrite(GPIOA3_BASE,0x80,0x00);   // Set CS Low
     MAP_SPIDataPut(GSPI_BASE,c);        // Send c to OLED
 
 }
@@ -350,9 +350,22 @@ void main()
             //write to RAM
             writeCommand();
 
-            for(int i = 0; i < sizeof(font); i++)
+          for(int i = 0; i < sizeof(font); i++)
             {
-
+		writeData(font[i]);
             }
             //Display off to show data in RAM
+
+	writeData(0x48);
+	writeData(0x45);
+	writeData(0x4C);
+	writeData(0x4C);
+	writeData(0x4F);
+	writeData(0x20);
+	writeData(0x77);
+	writeData(0x4F);
+	writeData(0x52);
+	writeData(0x4C);
+	writeData(0x44);
+
 }

@@ -348,13 +348,17 @@ void main()
             MAP_SPICSEnable(GSPI_BASE);
 
             //write to RAM
-            writeCommand();
+            writeCommand(SSD1351_CMD_WRITERAM);
 
           for(int i = 0; i < sizeof(font); i++)
             {
 		writeData(font[i]);
             }
             //Display off to show data in RAM
+	writeCommand(SSD1351_CMD_DISPLAYOFF);
+	MAP_UtilsDelay(8000000);
+	writeCommand(SSD1351_CMD_DISPLAYALLOFF);
+	writeCommand(SSD1351_CMD_WRITERAM);
 
 	writeData(0x48);
 	writeData(0x45);
@@ -367,5 +371,6 @@ void main()
 	writeData(0x52);
 	writeData(0x4C);
 	writeData(0x44);
+        writeCommand(SSD1351_CMD_DISPLAYOFF);
 
 }

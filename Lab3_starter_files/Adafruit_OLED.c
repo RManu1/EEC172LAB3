@@ -24,7 +24,7 @@
 #include "Adafruit_SSD1351.h"
 
 //*****************************************************************************
-
+#define SPI_IF_BIT_RATE  100000
 void writeCommand(unsigned char c) {
 
 //TODO 1
@@ -349,8 +349,8 @@ void main()
 
             //write to RAM
             writeCommand(SSD1351_CMD_WRITERAM);
-
-          for(int i = 0; i < sizeof(font); i++)
+	unsigned int i;
+          for(i = 0; i < sizeof(font); i++)
             {
 		writeData(font[i]);
             }

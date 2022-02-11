@@ -725,6 +725,7 @@ void main()
 
                 Adafruit_Init();
         MAP_UtilsDelay(8000000);
+        // Print full character-set
         unsigned int i;
         for (i = 0; i < sizeof(font); i++)
         {
@@ -736,8 +737,130 @@ void main()
                 x = 1;
             }
         }
+        MAP_UtilsDelay(8000000);
+
+        // Clear screen
+        fillScreen(WHITE);
+
+        // Print "Hello World!"
+        drawChar(1,1,'H',BLACK,WHITE,1);
+        drawChar(7,1,'e',BLACK,WHITE,1);
+        drawChar(13,1,'l',BLACK,WHITE,1);
+        drawChar(19,1,'l',BLACK,WHITE,1);
+        drawChar(25,1,'o',BLACK,WHITE,1);
+        drawChar(31,1,' ',BLACK,WHITE,1);
+        drawChar(37,1,'W',BLACK,WHITE,1);
+        drawChar(43,1,'o',BLACK,WHITE,1);
+        drawChar(49,1,'r',BLACK,WHITE,1);
+        drawChar(55,1,'l',BLACK,WHITE,1);
+        drawChar(61,1,'d',BLACK,WHITE,1);
+        drawChar(67,1,'!',BLACK,WHITE,1);
+        MAP_UtilsDelay(8000000);
+
+        // Display Horizontal bands
+        for (i = 1; i < 17; i++)
+        {
+            drawFastHLine(1,i,128,BLACK);
+        }
+        for (i = 17; i < 33; i++)
+        {
+            drawFastHLine(1,i,128,BLUE);
+        }
+        for (i = 33; i < 49; i++)
+        {
+            drawFastHLine(1,i,128,GREEN);
+        }
+        for (i = 49; i < 65; i++)
+        {
+            drawFastHLine(1,i,128,CYAN);
+        }
+        for (i = 65; i < 81; i++)
+        {
+            drawFastHLine(1,i,128,RED);
+        }
+        for (i = 81; i < 97; i++)
+        {
+            drawFastHLine(1,i,128,MAGENTA);
+        }
+        for (i = 97; i < 113; i++)
+        {
+            drawFastHLine(1,i,128,YELLOW);
+        }
+        for (i = 113; i < 129; i++)
+        {
+            drawFastHLine(1,i,128,WHITE);
+        }
+        MAP_UtilsDelay(8000000);
+
+        //Display Vertical Bars
+        for (i = 1; i < 17; i++)
+        {
+            drawFastVLine(i,1,128,BLACK);
+        }
+        for (i = 17; i < 33; i++)
+        {
+            drawFastVLine(i,1,128,BLUE);
+        }
+        for (i = 33; i < 49; i++)
+        {
+            drawFastVLine(i,1,128,GREEN);
+        }
+        for (i = 49; i < 65; i++)
+        {
+            drawFastVLine(i,1,128,CYAN);
+        }
+        for (i = 65; i < 81; i++)
+        {
+            drawFastVLine(i,1,128,RED);
+        }
+        for (i = 81; i < 97; i++)
+        {
+            drawFastVLine(i,1,128,MAGENTA);
+        }
+        for (i = 97; i < 113; i++)
+        {
+            drawFastVLine(i,1,128,YELLOW);
+        }
+        for (i = 113; i < 129; i++)
+        {
+            drawFastVLine(i,1,128,WHITE);
+        }
+        MAP_UtilsDelay(8000000);
+
+        // Draw Diagonal Lines
+        testlines(CYAN);
+        MAP_UtilsDelay(8000000);
+
+        // Display Rectangular Grid
+        testfastlines(MAGENTA,GREEN);
+        MAP_UtilsDelay(8000000);
+
+        // Display Rectangle Pattern
+        testdrawrects(YELLOW);
+        MAP_UtilsDelay(8000000);
+
+        // Fill Rectangles
+        testfillrects(WHITE,BLUE);
+        MAP_UtilsDelay(8000000);
+
+        // Circles
+        fillScreen(WHITE);
+        testfillcircles(10,MAGENTA);
+        MAP_UtilsDelay(8000000);
+        testdrawcircles(10,BLACK);
+        MAP_UtilsDelay(8000000);
+
+        // Round Rectangles
+        testroundrects();
+        MAP_UtilsDelay(8000000);
+
+        // Triangles
+        testtriangles();
+        MAP_UtilsDelay(8000000);
+
         MAP_SPICSDisable(GSPI_BASE);
         MAP_SPIDisable(GSPI_BASE);
+
         while(1)
         {
 

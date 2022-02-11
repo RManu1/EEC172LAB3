@@ -36,7 +36,7 @@
 //
 //*****************************************************************************
 
-// This file was automatically generated on 2/9/2022 at 10:41:59 AM
+// This file was automatically generated on 2/9/2022 at 10:45:56 AM
 // by TI PinMux version 4.0.1543 
 //
 //*****************************************************************************
@@ -88,10 +88,10 @@ void PinMuxConfig(void)
     GPIODirModeSet(GPIOA2_BASE, 0x40, GPIO_DIR_MODE_OUT);
 
     //
-    // Configure PIN_18 for GPIO Input
+    // Configure PIN_18 for GPIO Output
     //
     PinTypeGPIO(PIN_18, PIN_MODE_0, false);
-    GPIODirModeSet(GPIOA3_BASE, 0x10, GPIO_DIR_MODE_IN);
+    GPIODirModeSet(GPIOA3_BASE, 0x10, GPIO_DIR_MODE_OUT);
 
     //
     // Configure PIN_45 for GPIO Output

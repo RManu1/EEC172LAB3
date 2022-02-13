@@ -1,34 +1,34 @@
 //*****************************************************************************
 //
-// Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/ 
-// 
-// 
-//  Redistribution and use in source and binary forms, with or without 
-//  modification, are permitted provided that the following conditions 
+// Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/
+//
+//
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions
 //  are met:
 //
-//    Redistributions of source code must retain the above copyright 
+//    Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //
 //    Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the 
-//    documentation and/or other materials provided with the   
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the
 //    distribution.
 //
 //    Neither the name of Texas Instruments Incorporated nor the names of
 //    its contributors may be used to endorse or promote products derived
 //    from this software without specific prior written permission.
 //
-//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-//  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+//  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 //  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-//  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-//  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-//  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
+//  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+//  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+//  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
 //  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 //  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-//  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+//  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //*****************************************************************************
@@ -51,6 +51,7 @@
 //*****************************************************************************
 
 // Standard includes
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -70,8 +71,9 @@
 
 // Common interface includes
 #include "uart_if.h"
-#include "pin_mux_config.h"
+#include "pinmux.h"
 #include "gpio_if.h"
+#include "i2c_if.h"
 
 
 #define APPLICATION_VERSION     "1.4.0"
@@ -95,6 +97,16 @@ float p = 3.1415926;
 #define YELLOW          0xFFE0
 #define WHITE           0xFFFF
 
+#define APP_NAME                "I2C Demo"
+#define UART_PRINT              Report
+#define FOREVER                 1
+#define CONSOLE                 UARTA0_BASE
+#define FAILURE                 -1
+#define SUCCESS                 0
+#define RETERR_IF_TRUE(condition) {if(condition) return FAILURE;}
+#define RET_IF_ERR(Func)          {int iRetVal = (Func); \
+                                   if (SUCCESS != iRetVal) \
+                                     return  iRetVal;}
 
 //*****************************************************************************
 //*****************************************************************************
@@ -127,6 +139,8 @@ extern void (* const g_pfnVectors[])(void);
 #if defined(ewarm)
 extern uVectorEntry __vector_table;
 #endif
+
+
 //*****************************************************************************
 //                 GLOBAL VARIABLES -- End
 //*****************************************************************************
@@ -673,21 +687,231 @@ void  invert(char v) {
         writeCommand(SSD1351_CMD_NORMALDISPLAY);
    }
  }
-void main()
+
+
+//*****************************************************************************
+//
+//! Display the usage of the I2C commands supported
+//!
+//! \param  none
+//!
+//! \return none
+//!
+//*****************************************************************************
+void
+DisplayUsage()
 {
+    UART_PRINT("Command Usage \n\r");
+    UART_PRINT("------------- \n\r");
+    UART_PRINT("write <dev_addr> <wrlen> <<byte0> [<byte1> ... ]> <stop>\n\r");
+    UART_PRINT("\t - Write data to the specified i2c device\n\r");
+    UART_PRINT("read  <dev_addr> <rdlen> \n\r\t - Read data frpm the specified "
+                "i2c device\n\r");
+    UART_PRINT("writereg <dev_addr> <reg_offset> <wrlen> <<byte0> [<byte1> ... "
+                "]> \n\r");
+    UART_PRINT("\t - Write data to the specified register of the i2c device\n\r");
+    UART_PRINT("readreg <dev_addr> <reg_offset> <rdlen> \n\r");
+    UART_PRINT("\t - Read data from the specified register of the i2c device\n\r");
+    UART_PRINT("\n\r");
+    UART_PRINT("Parameters \n\r");
+    UART_PRINT("---------- \n\r");
+    UART_PRINT("dev_addr - slave address of the i2c device, a hex value "
+                "preceeded by '0x'\n\r");
+    UART_PRINT("reg_offset - register address in the i2c device, a hex value "
+                "preceeded by '0x'\n\r");
+    UART_PRINT("wrlen - number of bytes to be written, a decimal value \n\r");
+    UART_PRINT("rdlen - number of bytes to be read, a decimal value \n\r");
+    UART_PRINT("bytex - value of the data to be written, a hex value preceeded "
+                "by '0x'\n\r");
+    UART_PRINT("stop - number of stop bits, 0 or 1\n\r");
+    UART_PRINT("--------------------------------------------------------------"
+                "--------------- \n\r\n\r");
+
+}
+
+//*****************************************************************************
+//
+//! Display the buffer contents over I2C
+//!
+//! \param  pucDataBuf is the pointer to the data store to be displayed
+//! \param  ucLen is the length of the data to be displayed
+//!
+//! \return none
+//!
+//*****************************************************************************
+int
+DisplayBuffer(unsigned char *pucDataBuf, unsigned char ucLen)
+{
+    unsigned char ucBufIndx = 0;
+    int f = (int) pucDataBuf[ucBufIndx];
+    if (f > 128)
+    {
+       int d = 256 - f;
+       f = d *(-1);
+
+    }
+    UART_PRINT("Read contents");
+   UART_PRINT("\n\r");
+    while(ucBufIndx < ucLen)
+    {
+        UART_PRINT(" 0x%x, ", pucDataBuf[ucBufIndx]);
+        ucBufIndx++;
+        if((ucBufIndx % 8) == 0)
+        {
+            UART_PRINT("\n\r");
+        }
+    }
+    UART_PRINT("\n\r");
+
+    return f;
+}
+
+//*****************************************************************************
+//
+//! Application startup display on UART
+//!
+//! \param  none
+//!
+//! \return none
+//!
+//*****************************************************************************
+static void
+DisplayBanner(char * AppName)
+{
+
+    Report("\n\n\n\r");
+    Report("\t\t *************************************************\n\r");
+    Report("\t\t      CC3200 %s Application       \n\r", AppName);
+    Report("\t\t *************************************************\n\r");
+    Report("\n\n\n\r");
+}
+
+
+//****************************************************************************
+//
+//! Parses the readreg command parameters and invokes the I2C APIs
+//! i2c readreg 0x<dev_addr> 0x<reg_offset> <rdlen>
+//!
+//! \param pcInpString pointer to the readreg command parameters
+//!
+//! This function
+//!    1. Parses the readreg command parameters.
+//!    2. Invokes the corresponding I2C APIs
+//!
+//! \return 0: Success, < 0: Failure.
+//
+//****************************************************************************
+int
+ProcessReadRegCommand(char *pcInpString)
+{
+    unsigned char ucDevAddr, ucRegOffset, ucRdLen;
+    unsigned char aucRdDataBuf[256];
+    char *pcErrPtr;
+
+    //
+    // Get the device address
+    //
+    pcInpString = strtok(NULL, " ");
+    RETERR_IF_TRUE(pcInpString == NULL);
+    ucDevAddr = (unsigned char)strtoul(pcInpString+2, &pcErrPtr, 16);
+    //
+    // Get the register offset address
+    //
+    pcInpString = strtok(NULL, " ");
+    RETERR_IF_TRUE(pcInpString == NULL);
+    ucRegOffset = (unsigned char)strtoul(pcInpString+2, &pcErrPtr, 16);
+
+    //
+    // Get the length of data to be read
+    //
+    pcInpString = strtok(NULL, " ");
+    RETERR_IF_TRUE(pcInpString == NULL);
+    ucRdLen = (unsigned char)strtoul(pcInpString, &pcErrPtr, 10);
+    //RETERR_IF_TRUE(ucLen > sizeof(aucDataBuf));
+
+    //
+    // Write the register address to be read from.
+    // Stop bit implicitly assumed to be 0.
+    //
+    RET_IF_ERR(I2C_IF_Write(ucDevAddr,&ucRegOffset,1,0));
+
+    //
+    // Read the specified length of data
+    //
+    RET_IF_ERR(I2C_IF_Read(ucDevAddr, &aucRdDataBuf[0], ucRdLen));
+
+    UART_PRINT("I2C Read From address complete\n\r");
+
+    //
+    // Display the buffer over UART on successful readreg
+    //
+    int f = DisplayBuffer(aucRdDataBuf, ucRdLen);
+
+    return f;
+}
+
+
+
+//****************************************************************************
+//
+//! Parses the user input command and invokes the I2C APIs
+//!
+//! \param pcCmdBuffer pointer to the user command
+//!
+//! This function
+//!    1. Parses the user command.
+//!    2. Invokes the corresponding I2C APIs
+//!
+//! \return 0: Success, < 0: Failure.
+//
+//****************************************************************************
+int
+ParseNProcessCmd(char *pcCmdBuffer)
+{
+    UART_PRINT("%s \n\r", pcCmdBuffer);
+    char *pcInpString;
+    int iRetVal = FAILURE;
+
+    pcInpString = strtok(pcCmdBuffer, " \n\r");
+    if(pcInpString != NULL)
+
+    {
+
+
+        if(!strcmp(pcInpString, "readreg"))
+        {
+            //
+            // Invoke the readreg command handler
+            //
+
+            iRetVal = ProcessReadRegCommand(pcInpString);
+        }
+        else
+        {
+            UART_PRINT("Unsupported command\n\r");
+            return FAILURE;
+        }
+    }
+
+    return iRetVal;
+}
+
+void main()
+ {
 
     ucTxBuffNdx = 0;
     ucRxBuffNdx = 0;
-    unsigned int x = 2;             // Position of circle along x-axis
-    unsigned int y = 2;             // Position of circle along y-axis
+    unsigned int x = 64;             // Position of circle along x-axis
+    unsigned int y = 64;             // Position of circle along y-axis
     signed int x_check = 0;         // Compares tilt values of x to maxValue
     signed int y_check = 0;         // Compares tilt values of y to maxValue
     signed int x_angle;             // Angle of tilt along x-axis
     signed int y_angle;             // Angle of tilt along y-axis
     unsigned int x_prev;            // Holds previous value of x
     unsigned int y_prev;            // Holds previous value of y
-    signed int maxValue = 1;        // Absolute value of maximum tilt
-
+    signed int maxValue = 64;        // Absolute value of maximum tilt
+    int iRetVal;
+    char acCmdStore[512];
 
     //
             // Initialize Board configurations
@@ -698,6 +922,21 @@ void main()
             // Muxing UART and SPI lines.
             //
             PinMuxConfig();
+
+            InitTerm();
+
+            //
+            // I2C Init
+            //
+            I2C_IF_Open(I2C_MASTER_MODE_FST);
+
+            //
+            // Display the banner followed by the usage description
+            //
+            DisplayBanner(APP_NAME);
+            DisplayUsage();
+
+
 
             //
             // Enable the SPI module clock
@@ -734,6 +973,8 @@ void main()
                                 SPI_CS_ENABLE|SPI_CS_DISABLE);
                 MAP_SPICSEnable(GSPI_BASE);
 
+
+
                 Adafruit_Init();
         MAP_UtilsDelay(8000000);
         fillScreen(WHITE);
@@ -741,11 +982,16 @@ void main()
         // Move circle with accelerometer values
         while(1)
         {
+
             fillCircle(x,y,2,CYAN);
             x_prev = x;
             y_prev = y;
-            x_angle = 1;
-            y_angle = 1;
+            strcpy(acCmdStore, "readreg 0x18 0x3 1");
+            x_angle = ParseNProcessCmd(acCmdStore);
+            UART_PRINT("%d \n\r", x_angle);
+            strcpy(acCmdStore, "readreg 0x18 0x5 1");
+            y_angle = ParseNProcessCmd(acCmdStore);
+            UART_PRINT("%d \n\r", y_angle);
             x_check += x_angle;
             if (x_check >= maxValue || x_check <= -maxValue)
             {
@@ -778,6 +1024,9 @@ void main()
             {
                 fillCircle(x_prev,y_prev,2,WHITE);
             }
+
+
+
         }
         MAP_SPICSDisable(GSPI_BASE);
         MAP_SPIDisable(GSPI_BASE);

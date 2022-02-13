@@ -45,6 +45,8 @@
 #include "hw_types.h"
 #include "hw_memmap.h"
 #include "hw_gpio.h"
+#include "rom.h"
+#include "rom_map.h"
 #include "pin.h"
 #include "gpio.h"
 #include "prcm.h"
@@ -57,8 +59,7 @@ void PinMuxConfig(void)
     //
     // Set unused pins to PIN_MODE_0 with the exception of JTAG pins 16,17,19,20
     //
-    PinModeSet(PIN_01, PIN_MODE_0);
-    PinModeSet(PIN_02, PIN_MODE_0);
+
     PinModeSet(PIN_03, PIN_MODE_0);
     PinModeSet(PIN_04, PIN_MODE_0);
     PinModeSet(PIN_21, PIN_MODE_0);
@@ -72,7 +73,7 @@ void PinMuxConfig(void)
     PinModeSet(PIN_62, PIN_MODE_0);
     PinModeSet(PIN_63, PIN_MODE_0);
     PinModeSet(PIN_64, PIN_MODE_0);
-    
+
     //
     // Enable Peripheral Clocks 
     //
@@ -128,4 +129,14 @@ void PinMuxConfig(void)
     // Configure PIN_57 for UART0 UART0_RX
     //
     PinTypeUART(PIN_57, PIN_MODE_3);
+
+    //
+       // Configure PIN_01 for I2C0 I2C_SCL
+       //
+       PinTypeI2C(PIN_01, PIN_MODE_1);
+
+       //
+       // Configure PIN_02 for I2C0 I2C_SDA
+       //
+       PinTypeI2C(PIN_02, PIN_MODE_1);
 }

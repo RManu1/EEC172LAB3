@@ -1020,7 +1020,7 @@ void main()
             {
                 y = 2;
             }
-            if (x != x_prev && y != y_prev)
+            if (x != x_prev || y != y_prev)
             {
                 fillCircle(x_prev,y_prev,2,WHITE);
             }
